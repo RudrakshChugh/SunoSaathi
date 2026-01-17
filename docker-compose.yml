@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: sunosaathi_db
+    environment:
+      POSTGRES_DB: sunosaathi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ISL Recognition Service
+  isl_recognition:
+    build:
+      context: ./backend
+      dockerfile: services/isl_recognition/Dockerfile
+    container_name: sunosaathi_isl
+    ports:
+      - "8001:8001"
+    environment:
+      - ISL_RECOGNITION_PORT=8001
+    depends_on:
+      - postgres
+
+  # Translation Service
+  translation:
+    build:
+      context: ./backend
+      dockerfile: services/translation/Dockerfile
+    container_name: sunosaathi_translation
+    ports:
+      - "8002:8002"
+    environment:
+      - TRANSLATION_PORT=8002
+
+  # TTS Service
+  tts:
+    build:
+      context: ./backend
+      dockerfile: services/tts/Dockerfile
+    container_name: sunosaathi_tts
+    ports:
+      - "8003:8003"
+    environment:
+      - TTS_PORT=8003
+
+  # Safety Filter Service
+  safety:
+    build:
+      context: ./backend
+      dockerfile: services/safety/Dockerfile
+    container_name: sunosaathi_safety
+    ports:
+      - "8004:8004"
+    environment:
+      - SAFETY_PORT=8004
+
+  # API Gateway
+  api_gateway:
+    build:
+      context: ./backend
+      dockerfile: api_gateway/Dockerfile
+    container_name: sunosaathi_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - API_GATEWAY_PORT=8000
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/sunosaathi
+      - ISL_RECOGNITION_PORT=8001
+      - TRANSLATION_PORT=8002
+      - TTS_PORT=8003
+      - SAFETY_PORT=8004
+    depends_on:
+      - postgres
+      - isl_recognition
+      - translation
+      - tts
+      - safety
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sunosaathi_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000/ws
+    depends_on:
+      - api_gateway
+
+volumes:
+  postgres_data:
