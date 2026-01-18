@@ -17,6 +17,16 @@ logger = get_logger(__name__)
 
 app = FastAPI(title="Translation Service", version="1.0.0")
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Request/Response models
 class TranslationRequest(BaseModel):
     text: str

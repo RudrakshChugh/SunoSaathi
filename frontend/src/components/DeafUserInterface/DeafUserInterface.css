@@ -100,6 +100,37 @@
   color: hsl(var(--accent-foreground));
 }
 
+.header-branding {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-branding h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
+.header-branding .subtitle {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+}
+
+.page-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -133,6 +164,7 @@
   padding: 1.5rem;
   gap: 1.5rem;
   overflow: hidden;
+  margin-top: 0;
 }
 
 /* --- SIDEBAR --- */
@@ -222,18 +254,20 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: calc(100vh - 8rem); /* Limit height to prevent overflow/hiding */
 }
 
 .video-feed, .video-canvas {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  max-height: 100%;
 }
 
 /* --- OVERLAYS --- */
 .overlay-feedback {
   position: absolute;
-  top: 2rem;
+  top: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -241,31 +275,14 @@
   align-items: center;
   gap: 0.5rem;
   animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
 }
 
-.confidence-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  background: hsl(var(--success));
-  color: white;
-  padding: 0.125rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-
-.recognized-sign {
-  font-size: 2.25rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: white;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
+/* ... middle content skipped ... */
 
 .translation-card {
   position: absolute;
-  bottom: 2rem;
+  bottom: 5rem; /* Raised to make room for footer if any */
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
@@ -278,30 +295,16 @@
   text-align: center;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
-.trans-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: hsl(var(--muted-foreground));
-  margin-bottom: 0.5rem;
-}
-
-.trans-text {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-  line-height: 1.2;
-}
+/* ... middle content skipped ... */
 
 /* --- CONTROLS --- */
 .controls-dock {
   position: absolute;
-  bottom: 2rem;
-  right: 2rem;
+  bottom: 1.5rem;
+  right: 1.5rem;
   z-index: 20;
 }
 

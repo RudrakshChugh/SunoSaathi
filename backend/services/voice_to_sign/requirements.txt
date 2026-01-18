@@ -1,0 +1,6 @@
+whisper
+openai-whisper
+spacy
+fastapi
+uvicorn
+python-multipart

@@ -23,24 +23,29 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
   const [consentGiven, setConsentGiven] = useState(false);
   const [cameraStarted, setCameraStarted] = useState(false);
   const [mediaPipeReady, setMediaPipeReady] = useState(false);
-  
+
   // MediaPipe instances
   const holisticRef = useRef(null);
   const cameraRef = useRef(null);
+
+  // Scroll to top on component mount for better UX
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Request camera consent
   const requestCameraConsent = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop()); // Stop immediately after permission
-      
+
       // Log consent
       try {
         await apiService.logConsent(userId, 'camera', true);
       } catch (err) {
         console.warn('Could not log consent:', err);
       }
-      
+
       setConsentGiven(true);
       setError(null);
     } catch (err) {
@@ -57,18 +62,18 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
   const initializeCamera = async () => {
     try {
       setError(null);
-      
+
       console.log('Initializing MediaPipe from CDN...');
-      
+
       // Check if MediaPipe is loaded from CDN
       if (!window.Holistic || !window.Camera) {
         throw new Error('MediaPipe not loaded. Please refresh the page.');
       }
-      
+
       // Use MediaPipe from window (loaded via CDN)
       const Holistic = window.Holistic;
       const Camera = window.Camera;
-      
+
       // Initialize Holistic
       const holistic = new Holistic({
         locateFile: (file) => {
@@ -89,7 +94,7 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
       holistic.onResults((results) => {
         handleMediaPipeResults(results);
       });
-      
+
       holisticRef.current = holistic;
 
       // Initialize camera
@@ -102,15 +107,15 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
         width: 640,
         height: 480
       });
-      
+
       cameraRef.current = camera;
-      
+
       await camera.start();
-      
+
       setCameraStarted(true);
       setMediaPipeReady(true);
       console.log('MediaPipe initialized and camera started successfully!');
-      
+
     } catch (err) {
       setError('Failed to initialize MediaPipe: ' + err.message);
       console.error('MediaPipe initialization error:', err);
@@ -124,7 +129,7 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
       const canvasCtx = canvasRef.current.getContext('2d');
       canvasCtx.save();
       canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      
+
       // Draw video frame
       canvasCtx.drawImage(
         results.image,
@@ -132,12 +137,12 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
         canvasRef.current.width,
         canvasRef.current.height
       );
-      
+
       // Draw pose landmarks
       if (results.poseLandmarks) {
         drawLandmarks(canvasCtx, results.poseLandmarks, '#00FF00');
       }
-      
+
       // Draw hand landmarks
       if (results.leftHandLandmarks) {
         drawLandmarks(canvasCtx, results.leftHandLandmarks, '#FF0000');
@@ -145,7 +150,7 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
       if (results.rightHandLandmarks) {
         drawLandmarks(canvasCtx, results.rightHandLandmarks, '#0000FF');
       }
-      
+
       canvasCtx.restore();
     }
 
@@ -156,12 +161,12 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
         frame_id: frameCountRef.current,
         keypoints: keypoints
       };
-      
+
       framesRef.current.push(newFrame);
       frameCountRef.current += 1;
-      
+
       console.log(`Frame ${frameCountRef.current - 1} collected. Total frames: ${framesRef.current.length}`);
-      
+
       // Update state for UI
       setFrames([...framesRef.current]);
       setFrameCount(frameCountRef.current);
@@ -252,12 +257,12 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
   const stopRecording = async () => {
     setIsRecording(false);
     isRecordingRef.current = false;
-    
+
     // CHECK FOR DEMO OVERRIDE FIRST
     if (demoOverrideRef.current) {
-        console.log('🔮 Executing Queued Override:', demoOverrideRef.current.label);
-        await processDemoSign(demoOverrideRef.current);
-        return; // Skip real processing
+      console.log('🔮 Executing Queued Override:', demoOverrideRef.current.label);
+      await processDemoSign(demoOverrideRef.current);
+      return; // Skip real processing
     }
 
     setIsProcessing(true);
@@ -265,7 +270,7 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
     try {
       const collectedFrames = framesRef.current;
       console.log(`Stop recording called. Frames collected: ${collectedFrames.length}`);
-      
+
       if (collectedFrames.length === 0) {
         setError('No frames recorded. Please try again.');
         setIsProcessing(false);
@@ -293,7 +298,7 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
         const topPrediction = result.predictions[0];
         console.log('Top prediction:', topPrediction);
         setRecognizedText(topPrediction.sign + ` (${(topPrediction.confidence * 100).toFixed(1)}% confidence)`);
-        
+
         // Try to translate the top prediction
         try {
           const translationResponse = await fetch('http://localhost:8002/translate', {
@@ -346,60 +351,60 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
   const demoOverrideRef = useRef(null);
 
   const processDemoSign = async (sign) => {
-      // Stealth Mode: Simulate real AI latency
-      setIsProcessing(true);
-      setError(null);
-      
-      // 1. Add realistic random delay (0.8s to 2.2s)
-      const randomDelay = Math.floor(Math.random() * 1400) + 800;
-      
-      try {
-          // Wait for the "processing" delay
-          await new Promise(resolve => setTimeout(resolve, randomDelay));
+    // Stealth Mode: Simulate real AI latency
+    setIsProcessing(true);
+    setError(null);
 
-          // 2. Generate organic confidence score (82% to 94%)
-          const randomConfidence = (Math.random() * (0.94 - 0.82) + 0.82).toFixed(2);
-          
-          setRecognizedText(sign.label + ` (${(randomConfidence * 100).toFixed(0)}% confidence)`);
-          
-          // 3. Translate
-          const translationResponse = await fetch('http://localhost:8002/translate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: sign.text,
-              source_lang: 'en',
-              target_lang: targetLanguage
-            })
-          });
-          const translationData = await translationResponse.json();
-          setTranslatedText(translationData.translated_text || sign.text);
-          
-      } catch (err) {
-          setTranslatedText(sign.text);
-      } finally {
-          setIsProcessing(false);
-          // Clear override after use
-          demoOverrideRef.current = null;
-      }
+    // 1. Add realistic random delay (0.8s to 2.2s)
+    const randomDelay = Math.floor(Math.random() * 1400) + 800;
+
+    try {
+      // Wait for the "processing" delay
+      await new Promise(resolve => setTimeout(resolve, randomDelay));
+
+      // 2. Generate organic confidence score (82% to 94%)
+      const randomConfidence = (Math.random() * (0.94 - 0.82) + 0.82).toFixed(2);
+
+      setRecognizedText(sign.label + ` (${(randomConfidence * 100).toFixed(0)}% confidence)`);
+
+      // 3. Translate
+      const translationResponse = await fetch('http://localhost:8002/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: sign.text,
+          source_lang: 'en',
+          target_lang: targetLanguage
+        })
+      });
+      const translationData = await translationResponse.json();
+      setTranslatedText(translationData.translated_text || sign.text);
+
+    } catch (err) {
+      setTranslatedText(sign.text);
+    } finally {
+      setIsProcessing(false);
+      // Clear override after use
+      demoOverrideRef.current = null;
+    }
   };
 
   useEffect(() => {
-      const handleKeyPress = (e) => {
-          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    const handleKeyPress = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-          const key = e.key;
-          const index = parseInt(key) - 1;
-          
-          if (index >= 0 && index < demoSigns.length) {
-              // INSTEAD OF TRIGGERING IMMEDIATELY, STORE IT
-              console.log('🔮 Demo Override Queued:', demoSigns[index].label);
-              demoOverrideRef.current = demoSigns[index];
-          }
-      };
-      
-      window.addEventListener('keydown', handleKeyPress);
-      return () => window.removeEventListener('keydown', handleKeyPress);
+      const key = e.key;
+      const index = parseInt(key) - 1;
+
+      if (index >= 0 && index < demoSigns.length) {
+        // INSTEAD OF TRIGGERING IMMEDIATELY, STORE IT
+        console.log('🔮 Demo Override Queued:', demoSigns[index].label);
+        demoOverrideRef.current = demoSigns[index];
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
   }, [targetLanguage]);
   // ------------------------------------------
 
@@ -409,17 +414,17 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
       <header className="interface-header">
         <div className="header-left">
           <button className="back-btn" onClick={() => window.location.reload()}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5" />
+              <path d="M12 19l-7-7 7-7" />
+            </svg>
             Back
           </button>
-          <h2>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"/><path d="M9 4v16"/><path d="M15 4v16"/></svg>
-            SunoSaathi Recognition
-          </h2>
+          <h1 className="page-title">ISL Sign Recognition</h1>
         </div>
         <div className="status-badge">
-          <div className={`status-dot ${cameraStarted && mediaPipeReady ? 'active' : ''}`}></div>
-          {cameraStarted && mediaPipeReady ? 'System Ready' : 'Initializing...'}
+          <div className={`status-dot ${cameraStarted ? 'active' : ''}`}></div>
+          {cameraStarted ? 'Camera Ready' : 'Camera Off'}
         </div>
       </header>
 
@@ -429,35 +434,55 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
           <h3>Sign Library</h3>
           <ul className="guide-list">
             <li className="guide-item">
-              <span className="guide-icon">👋</span>
+              <span className="guide-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
+                </svg>
+              </span>
               <div className="guide-info">
                 <span className="guide-label">Hello</span>
                 <span className="guide-desc">Wave hand at head level</span>
               </div>
             </li>
             <li className="guide-item">
-              <span className="guide-icon">❓</span>
+              <span className="guide-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" />
+                </svg>
+              </span>
               <div className="guide-info">
                 <span className="guide-label">How are you?</span>
                 <span className="guide-desc">Point to chest, then thumbs up</span>
               </div>
             </li>
             <li className="guide-item">
-              <span className="guide-icon">☀️</span>
+              <span className="guide-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
+                </svg>
+              </span>
               <div className="guide-info">
                 <span className="guide-label">Good Morning</span>
                 <span className="guide-desc">Raise hand like sun rising</span>
               </div>
             </li>
             <li className="guide-item">
-              <span className="guide-icon">🌤️</span>
+              <span className="guide-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v4" /><circle cx="12" cy="12" r="4" /><path d="m20 20-4-4" /><path d="M6.34 17.66l-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /><path d="M20 12h2" />
+                </svg>
+              </span>
               <div className="guide-info">
                 <span className="guide-label">Good Afternoon</span>
                 <span className="guide-desc">Hand flat at forehead level</span>
               </div>
             </li>
             <li className="guide-item">
-              <span className="guide-icon">👍</span>
+              <span className="guide-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                </svg>
+              </span>
               <div className="guide-info">
                 <span className="guide-label">Alright</span>
                 <span className="guide-desc">Show thumbs up clearly</span>
@@ -466,92 +491,92 @@ const DeafUserInterface = ({ userId, sessionId, targetLanguage = 'en' }) => {
           </ul>
 
           {isProcessing && (
-              <div className="processing-indicator">
-                  <div className="spinner"></div>
-                  Processing Sign...
-              </div>
+            <div className="processing-indicator">
+              <div className="spinner"></div>
+              Processing Sign...
+            </div>
           )}
         </aside>
 
         {/* MAIN VIDEO STAGE */}
         <main className="video-stage">
-            {/* Video elements must always be rendered for MediaPipe to attach */}
-            <video ref={videoRef} style={{ display: 'none' }} autoPlay playsInline />
-            <canvas
-                ref={canvasRef}
-                width={640}
-                height={480}
-                className="video-canvas"
-                style={{ 
-                    transform: 'scaleX(-1)',
-                    display: cameraStarted ? 'block' : 'none' 
-                }}
-            />
+          {/* Video elements must always be rendered for MediaPipe to attach */}
+          <video ref={videoRef} style={{ display: 'none' }} autoPlay playsInline />
+          <canvas
+            ref={canvasRef}
+            width={640}
+            height={480}
+            className="video-canvas"
+            style={{
+              transform: 'scaleX(-1)',
+              display: cameraStarted ? 'block' : 'none'
+            }}
+          />
 
-            {!consentGiven ? (
+          {!consentGiven ? (
             <div className="empty-state">
-                <div className="empty-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                </div>
-                <h3>Camera Access Required</h3>
-                <p className="text-muted">We need camera access to analyze your sign language movements locally.</p>
-                <button onClick={requestCameraConsent} className="btn-primary">
-                    Enable Camera
-                </button>
+              <div className="empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+              </div>
+              <h3>Camera Access Required</h3>
+              <p className="text-muted">We need camera access to analyze your sign language movements locally.</p>
+              <button onClick={requestCameraConsent} className="btn-primary">
+                Enable Camera
+              </button>
             </div>
-            ) : !cameraStarted ? (
+          ) : !cameraStarted ? (
             <div className="empty-state">
-                <div className="empty-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
-                </div>
-                <h3>Initialize AI Engine</h3>
-                <p className="text-muted">Load the MediaPipe Holistic models to begin recognition.</p>
-                <button onClick={initializeCamera} className="btn-primary">
-                    Start System
-                </button>
+              <div className="empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4" /><path d="M12 18v4" /><path d="M4.93 4.93l2.83 2.83" /><path d="M16.24 16.24l2.83 2.83" /><path d="M2 12h4" /><path d="M18 12h4" /><path d="M4.93 19.07l2.83-2.83" /><path d="M16.24 7.76l2.83-2.83" /></svg>
+              </div>
+              <h3>Initialize AI Engine</h3>
+              <p className="text-muted">Load the MediaPipe Holistic models to begin recognition.</p>
+              <button onClick={initializeCamera} className="btn-primary">
+                Start System
+              </button>
             </div>
-            ) : (
-             <>
-                {/* OVERLAYS */}
-                {recognizedText && (
-                    <>
-                        <div className="overlay-feedback">
-                            <span className="confidence-badge">AI DETECTED</span>
-                            <span className="recognized-sign">{recognizedText.split('(')[0]}</span>
-                        </div>
-                        
-                        {translatedText && (
-                            <div className="translation-card">
-                                <span className="trans-label">Translated to {targetLanguage.toUpperCase()}</span>
-                                <div className="trans-text">{translatedText}</div>
-                            </div>
-                        )}
-                    </>
+          ) : (
+            <>
+              {/* OVERLAYS */}
+              {recognizedText && (
+                <>
+                  <div className="overlay-feedback">
+                    <span className="confidence-badge">AI DETECTED</span>
+                    <span className="recognized-sign">{recognizedText.split('(')[0]}</span>
+                  </div>
+
+                  {translatedText && (
+                    <div className="translation-card">
+                      <span className="trans-label">Translated to {targetLanguage.toUpperCase()}</span>
+                      <div className="trans-text">{translatedText}</div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* CONTROLS DOCK */}
+              <div className="controls-dock">
+                {!isRecording ? (
+                  <button
+                    className="btn-record"
+                    onClick={startRecording}
+                    disabled={isProcessing}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v8" /><path d="M8 12h8" /></svg>
+                    Start Recognition
+                  </button>
+                ) : (
+                  <button
+                    className="btn-record recording"
+                    onClick={stopRecording}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                    Stop & Process
+                  </button>
                 )}
-
-                {/* CONTROLS DOCK */}
-                <div className="controls-dock">
-                    {!isRecording ? (
-                        <button 
-                            className="btn-record"
-                            onClick={startRecording}
-                            disabled={isProcessing}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                            Start Recognition
-                        </button>
-                    ) : (
-                        <button 
-                            className="btn-record recording" 
-                            onClick={stopRecording}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
-                            Stop & Process
-                        </button>
-                    )}
-                </div>
-             </>
-            )}
+              </div>
+            </>
+          )}
         </main>
       </div>
     </div>

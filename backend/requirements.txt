@@ -12,10 +12,13 @@ alembic==1.13.1
 
 # AI/ML Models
 torch==2.1.2
+torchvision==0.16.2
 transformers==4.37.2
 openai-whisper==20231117
 sentencepiece==0.1.99
 sacremoses==0.1.1
+Pillow==10.2.0  # For image processing
+tqdm==4.66.1  # For training progress bars
 
 # NLP
 spacy==3.7.2

@@ -3,14 +3,19 @@
  */
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const VOICE_API_URL = import.meta.env.VITE_VOICE_API_URL || 'http://localhost:8005';
+const ISL_API_URL = import.meta.env.VITE_ISL_API_URL || 'http://localhost:8001';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+const voiceClient = axios.create({
+  baseURL: VOICE_API_URL,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  headers: { 'Content-Type': 'application/json' }
+});
+
+const islClient = axios.create({
+  baseURL: ISL_API_URL,
+  timeout: 30000,
+  headers: { 'Content-Type': 'application/json' }
 });
 
 class APIService {
@@ -18,7 +23,7 @@ class APIService {
    * Set user preferences
    */
   async setUserPreferences(userId, preferences) {
-    const response = await apiClient.post('/users/preferences', {
+    const response = await voiceClient.post('/users/preferences', {
       user_id: userId,
       ...preferences
     });
@@ -29,7 +34,8 @@ class APIService {
    * Log user consent
    */
   async logConsent(userId, consentType, granted) {
-    const response = await apiClient.post('/users/consent', {
+    // Only logging to voice backend for now as it handles user data
+    const response = await voiceClient.post('/users/consent', {
       user_id: userId,
       consent_type: consentType,
       granted: granted
@@ -39,29 +45,38 @@ class APIService {
 
   /**
    * Process deaf user message (ISL keypoints)
+   * Sends to ISL Recognition Service (Port 8001)
    */
   async processDeafUserMessage(userId, sessionId, frames, targetLanguage = 'en') {
-    const response = await apiClient.post('/deaf-user/process', {
+    // Frames are already in correct format: [{frame_id: 0, keypoints: [[x,y,z], ...]}, ...]
+    // Just pass them directly
+    const response = await islClient.post('/recognize', {
       user_id: userId,
-      session_id: sessionId,
-      frames: frames,
-      target_language: targetLanguage
+      frames: frames
     });
-    return response.data;
+    
+    // Map backend response to frontend expected format
+    return {
+      status: response.data.text ? 'success' : 'partial',
+      recognized_text: response.data.text,
+      predictions: response.data.predictions, // [{sign, confidence}]
+      translated_text: response.data.text // Determine translation logic later
+    };
   }
 
   /**
    * Process hearing user message (text/speech)
    */
   async processHearingUserMessage(userId, sessionId, text, sourceLang = 'en', targetLang = 'en') {
-    const response = await apiClient.post('/hearing-user/process', {
-      user_id: userId,
-      session_id: sessionId,
-      text: text,
-      source_language: sourceLang,
-      target_language: targetLang
+    const response = await voiceClient.post('/translate-text', {
+      text: text
     });
-    return response.data;
+    
+    // Map response to frontend format
+    return {
+      translated_text: response.data.clean_text,
+      sequence: response.data.sequence
+    };
   }
 
   /**

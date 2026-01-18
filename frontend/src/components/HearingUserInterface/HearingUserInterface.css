@@ -1,47 +1,114 @@
 .hearing-user-interface {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 2rem;
+  min-height: 100vh;
+  background-color: #09090b;
+  color: #fafafa;
+  padding: 0;
   overflow-y: auto;
 }
 
 .interface-header {
+  height: 3.5rem;
+  border-bottom: 1px solid #27272a;
+  background: rgba(24, 24, 27, 0.8);
+  backdrop-filter: blur(12px);
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.interface-footer {
+  background: hsl(var(--background));
+  border-top: 1px solid hsl(var(--border));
+  padding: 1.5rem 2rem;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-top: 3rem;
 }
 
-.interface-header h2 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  color: #a1a1aa;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.interface-header p {
-  font-size: 1.1rem;
-  opacity: 0.9;
+.back-btn:hover {
+  background: #27272a;
+  color: #fafafa;
+}
+
+.header-branding {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-branding h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fafafa;
+  margin: 0;
+}
+
+.header-branding .subtitle {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  font-weight: 400;
+}
+
+.page-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fafafa;
+  margin: 0;
+  flex: 1;
 }
 
 .main-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
   flex: 1;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  padding: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
 }
 
 /* Avatar Section */
 .avatar-section {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
+  flex: 1;
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 15px;
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,20 +117,21 @@
 
 /* Controls Section */
 .controls-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
 }
 
 .speech-controls,
 .text-input-section,
 .response-section {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .speech-controls h3,
@@ -145,6 +213,8 @@
   resize: vertical;
   font-family: inherit;
   margin-bottom: 1rem;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .text-input::placeholder {
@@ -153,7 +223,7 @@
 
 .text-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(59, 130, 246, 0.5);
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -244,7 +314,7 @@
 /* Footer */
 .interface-footer {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -277,4 +347,152 @@
   .main-content {
     gap: 1rem;
   }
+}
+
+/* Live Caption Box */
+.live-caption-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  min-height: 60px;
+}
+
+.caption-label {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.caption-text {
+  font-size: 1rem;
+  color: #fafafa;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Volume Meter */
+.volume-meter {
+  margin-top: 1rem;
+}
+
+.volume-label {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.volume-bar-container {
+  width: 100%;
+  height: 12px;
+  background: #27272a;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #3f3f46;
+}
+
+.volume-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  transition: width 0.05s linear;
+  border-radius: 6px;
+}
+
+/* ISL Sign Display */
+.sign-display {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.main-sign-image {
+  width: 400px;
+  height: 400px;
+  object-fit: contain;
+  background: #18181b;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: block;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.sign-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fafafa;
+  text-transform: capitalize;
+  padding: 0.5rem 1rem;
+  background: #27272a;
+  border-radius: 8px;
+  border: 1px solid #3f3f46;
+}
+
+.sign-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: #a1a1aa;
+  text-align: center;
+}
+
+.sign-placeholder svg {
+  opacity: 0.5;
+}
+
+.sign-placeholder p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ISL Thumbnail Strip */
+.isl-strip-container {
+  width: 100%;
+  max-width: 400px;
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: #18181b;
+  border-radius: 8px;
+  border: 1px solid #27272a;
+}
+
+.isl-strip {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.25rem;
+}
+
+.isl-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  opacity: 0.4;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+}
+
+.isl-thumb:hover {
+  opacity: 0.7;
+  transform: scale(1.05);
+}
+
+.isl-thumb.active {
+  opacity: 1;
+  transform: scale(1.1);
+  border-color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
 }
