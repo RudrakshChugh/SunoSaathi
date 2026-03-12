@@ -12,7 +12,7 @@ import sys
 # Add parent directories to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from model import get_recognizer
+from model_resnet import get_recognizer
 from shared.utils import get_logger
 
 logger = get_logger(__name__)
@@ -30,14 +30,14 @@ app.add_middleware(
 )
 
 # Request/Response models
-class KeypointFrame(BaseModel):
-    """Single frame of keypoints"""
+class ImageFrame(BaseModel):
+    """Single video frame as base64-encoded image"""
     frame_id: int
-    keypoints: List[List[float]]  # Shape: (num_keypoints, 3)
+    image_data: str  # Base64-encoded image (JPEG or PNG)
 
 class RecognitionRequest(BaseModel):
     """Request for ISL recognition"""
-    frames: List[KeypointFrame]
+    image_data: str  # Base64-encoded image for single frame recognition
     user_id: str = "anonymous"
 
 class Prediction(BaseModel):
